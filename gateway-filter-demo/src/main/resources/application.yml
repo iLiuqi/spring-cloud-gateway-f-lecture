@@ -1,0 +1,49 @@
+server:
+  port: 8082
+
+spring:
+  profiles:
+    active: elapse_route
+
+# AddRequestHeader GatewayFilter Factory
+---
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: add_request_header_route
+          uri: http://httpbin.org:80/get
+          filters:
+            - AddRequestHeader=X-Request-liuqi, Hi    # 命中predicate后，成功路由，此过滤器会在请求头上添加内容
+          predicates:
+            - After=2018-01-20T17:42:47.789-07:00[America/Denver]
+  profiles: add_request_header_route
+
+# RewritePath GatewayFilter Factory
+# 在Nginx服务启中有一个非常强大的功能就是重写路径，Spring Cloud Gateway默认也提供了这样的功能，这个功能是Zuul没有的
+---
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: rewritepath_route
+          uri: https://blog.csdn.net
+          predicates:
+            - Path=/foo/**
+          filters:
+            - RewritePath=/foo/(?<segment>.*), /$\{segment}   # http://localhost:8081/foo/forezp -> https://blog.csdn.net/forezp
+  profiles: rewritepath_route
+
+# 自定义的过滤器工厂
+---
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: elapse_route
+          uri: http://httpbin.org:80/get
+          filters:
+            - RequestTime=false
+          predicates:
+            - After=2017-01-20T17:42:47.789-07:00[America/Denver]
+  profiles: elapse_route
